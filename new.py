@@ -1,1 +1,2 @@
 print("Hell")
+print('Good')
