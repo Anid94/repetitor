@@ -3,12 +3,25 @@ class Product:
         self.name = name
         self.price = price
 
-    def display(self):
+    def __str__(self):
         return f'name: {self.name}, price: {self.price}'
+
+    def __eq__(self, other):
+        if not isinstance(other, Product):
+            return False
+        return self.name == other.name
+
 
 class Cart:
     def __init__(self):
         self.my_list = []
+
+    def __add__(self, other):
+        if not isinstance(other, Cart):
+            raise TypeError('не является объектом класса')
+        cart = Cart()
+        cart.my_list = self.my_list + other.my_list
+        return cart
 
     def add_product(self, product):
         if product:
@@ -24,16 +37,16 @@ class Cart:
 
         return summ
 
-    def show(self):
-        for obj in self.my_list:
-            print(obj.display())
+    def __str__(self):
+        return f'name: {self.name}, price: {self.price}'
 
     def remove_product(self, product):
-        if product in self.my_list:
-            self.my_list.remove(product)
-            print(f'Товар "{product.name}" удален из корзины')
-        else:
-            print(f'Товар "{product.name}" не найден')
+        for obj in self.my_list:
+            if product == obj.name:
+                self.my_list.remove(obj)
+                print(f'Товар {obj.name} удален из корзины')
+            else:
+                print(f'Товар {obj.name} не найден')
 
     def clear(self):
         self.my_list.clear()
@@ -42,48 +55,53 @@ class Cart:
     def find_obj(self, product_name):
         for obj in self.my_list:
             if obj.name == product_name:
-                return obj.display()
+                return obj
         return None
+
+    def __len__(self):
+        return len(self.my_list)
+
+    def __getitem__(self, index):
+        return self.my_list[index]
 
 class DiscountProduct(Product):
     def __init__(self, name, price, discount):
         super().__init__(name, price)
         self.discount = discount
 
-    def display(self):
-        return f'name: {self.name}, price: {self.price * (1 - self.discount / 100)} руб. (original: {self.price} руб., discount: {self.discount}%)'
-
     def price_with_discount(self):
-        print(self.display())
+        return self.price * (1 - self.discount / 100)
+
+    def display(self):
+        return f'name: {self.name}, price: {self.price_with_discount()} руб. (original: {self.price} руб., discount: {self.discount}%)'
 
 class WeightProduct(Product):
     def __init__(self, name, price_per_kg):
         super().__init__(name, price_per_kg)
+        self.price_per_kg = price_per_kg
 
     def get_cost(self, weight):
-        return f'name: {self.name}, price: {self.price * weight} руб/кг'
+        return self.price_per_kg * weight
+
+    def display(self):
+        return f'name: {self.name}, price per kg: {self.price_per_kg} руб./кг'
 
 banana = Product('banana', 59)
 apple = Product('apple', 100)
-tea = Product('tea', 130)
-chocolate = Product('chocolate', 67)
-milk = DiscountProduct('milk', 128, 15)
+apple1 = Product('apple', 90)
 
 new_cart = Cart()
 new_cart.add_product(apple)
 new_cart.add_product(banana)
-new_cart.add_product(milk)
-new_cart.show()
+#new_cart.__add__(apple1)
 
+cart1 = Cart()
+cart1.add_product(apple1)
+cart1.add_product(apple)
 
-new_cart.remove_product(apple)
-new_cart.show()
-new_cart.remove_product(chocolate)
-#new_cart.clear()
-#new_cart.show()
-print(new_cart.find_obj('banana'))
+cart2 = Cart()
+cart2.add_product(banana)
 
-milk.price_with_discount()
-cheese = WeightProduct('cheese', 800)
-print(cheese.display())
-print(cheese.get_cost(0.5))
+cart3 = cart1 + cart2
+
+print(cart3)
