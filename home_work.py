@@ -30,7 +30,7 @@ class Cart:
     def count_product(self):
         return len(self.my_list)
 
-    def sum_price(self):
+    def total_without_discount(self):
         summ = 0
         for obj in self.my_list:
             summ += obj.price
@@ -38,15 +38,28 @@ class Cart:
         return summ
 
     def __str__(self):
-        return f'name: {self.name}, price: {self.price}'
+        if not self.my_list:
+            return 'Корзина пуста'
+        all_products = ', '.join(str(obj.name) for obj in self.my_list)
+        return f'{all_products} | Итого: {self.total_without_discount()} руб.'
+
 
     def remove_product(self, product):
-        for obj in self.my_list:
-            if product == obj.name:
-                self.my_list.remove(obj)
-                print(f'Товар {obj.name} удален из корзины')
-            else:
-                print(f'Товар {obj.name} не найден')
+        '''
+        Решил сделать через list comprehensions
+        1. Сохраняю изначальную длину списка
+        2. Через list comprehensions отсеиваю ненужное и результат пересохраняю в self.my_list
+        3. сравниваю длины старого и нового списков. Если длина такая же, значит ничего не удалено и товар не был найден
+        иначе, товар найден и удален.
+        '''
+        my_list_len = len(self.my_list)
+        self.my_list = [obj for obj in self.my_list if obj.name != product]
+        if len(self.my_list) != my_list_len:
+            print(f'Товар {product} удален')
+        else:
+            print(f'Товар {product} в корзине не найден')
+        return self.my_list
+
 
     def clear(self):
         self.my_list.clear()
@@ -63,6 +76,9 @@ class Cart:
 
     def __getitem__(self, index):
         return self.my_list[index]
+
+    def __iter__(self):
+        return iter(self.my_list)
 
 class DiscountProduct(Product):
     def __init__(self, name, price, discount):
@@ -86,22 +102,29 @@ class WeightProduct(Product):
     def display(self):
         return f'name: {self.name}, price per kg: {self.price_per_kg} руб./кг'
 
-banana = Product('banana', 59)
-apple = Product('apple', 100)
-apple1 = Product('apple', 90)
 
-new_cart = Cart()
-new_cart.add_product(apple)
-new_cart.add_product(banana)
-#new_cart.__add__(apple1)
+banana1 = Product('banana', 59)
+banana2 = Product('banana', 89)
+apple1 = Product('apple', 90)
+apple2 = Product('apple', 95)
+apple3 = Product('apple', 100)
 
 cart1 = Cart()
 cart1.add_product(apple1)
-cart1.add_product(apple)
+cart1.add_product(apple2)
+cart1.add_product(apple3)
+cart1.add_product(banana1)
+cart1.add_product(banana2)
 
-cart2 = Cart()
-cart2.add_product(banana)
+print(cart1)
+print(cart1.total_without_discount())
+print('---------------------')
+cart1.remove_product('apple')
+print('---------------------')
+print(cart1)
+print('---------------------')
 
-cart3 = cart1 + cart2
+for product in cart1:
+    print(product)
 
-print(cart3)
+print(cart1.total_without_discount())
