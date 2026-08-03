@@ -1,3 +1,5 @@
+from decorators import logging
+
 class Product:
     def __init__(self, name, price):
         self.name = name
@@ -18,7 +20,7 @@ class Cart:
     def __add__(self, other):
         if not isinstance(other, Cart):
             raise TypeError('не является объектом класса')
-        cart = Car
+        cart = Cart()
         cart.my_list = self.my_list + other.my_list
         return cart
 
@@ -67,7 +69,7 @@ class Cart:
     def __contains__(self, item):
         for obj in self.my_list:
             if obj.name == item:
-                return obj
+                return True
         return False
 
     '''def find_obj(self, product_name):
@@ -91,6 +93,7 @@ class DiscountProduct(Product):
         super().__init__(name, price)
         self.discount = discount
 
+    @logging
     def price_with_discount(self):
         return self.price * (1 - self.discount / 100)
 
@@ -112,15 +115,20 @@ class Store():
     def __init__(self):
         self.catalog = []
 
-    def __str__(self):
-        return '\n'.join(str(obj) for obj in self.catalog)
-
-    def show_catalog(self):
-        return self
-
     def add_product(self, product):
         self.catalog.append(product)
-        return self.catalog
+        return f' Товар "{product.name}" добавлен в корзину'
+
+    def show_catalog(self):
+        if not self.catalog:
+            print('Каталог пуст')
+            return
+        for item in self.catalog:
+            if hasattr(item, 'display'):
+                print(item.display())
+            else:
+                print(item)
+
 
     def find_product(self, name):
         for obj in self.catalog:
@@ -129,13 +137,17 @@ class Store():
         return None
 
     def get_product_by_price(self, min_price, max_price):
-        return '\n'.join(str(obj) for obj in self.catalog if min_price <= obj.price <= max_price)
+        for obj in self.catalog:
+            if min_price <= obj.price <= max_price:
+                print(obj)
 
 banana1 = Product('banana', 59)
 banana2 = Product('banana', 89)
 apple1 = Product('apple', 90)
 apple2 = Product('apple', 95)
 apple3 = Product('apple', 100)
+
+obj = DiscountProduct(banana1.name, banana1.price, 15)
 
 cart1 = Cart()
 cart1.add_product(apple1)
@@ -163,9 +175,9 @@ store1 = Store()
 store1.add_product(apple1)
 store1.add_product(apple2)
 store1.add_product(apple3)
-store1.add_product(banana1)
 store1.add_product(banana2)
+store1.add_product(obj)
 print('--------------------------------')
-print(store1.get_product_by_price(90, 100))
+store1.get_product_by_price(90, 100)
 print('--------------------------------')
-print(store1.show_catalog())
+store1.show_catalog()
