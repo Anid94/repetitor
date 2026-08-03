@@ -11,7 +11,6 @@ class Product:
             return False
         return self.name == other.name
 
-
 class Cart:
     def __init__(self):
         self.my_list = []
@@ -19,7 +18,7 @@ class Cart:
     def __add__(self, other):
         if not isinstance(other, Cart):
             raise TypeError('не является объектом класса')
-        cart = Cart()
+        cart = Car
         cart.my_list = self.my_list + other.my_list
         return cart
 
@@ -109,7 +108,28 @@ class WeightProduct(Product):
     def display(self):
         return f'name: {self.name}, price per kg: {self.price_per_kg} руб./кг'
 
+class Store():
+    def __init__(self):
+        self.catalog = []
 
+    def __str__(self):
+        return '\n'.join(str(obj) for obj in self.catalog)
+
+    def show_catalog(self):
+        return self
+
+    def add_product(self, product):
+        self.catalog.append(product)
+        return self.catalog
+
+    def find_product(self, name):
+        for obj in self.catalog:
+            if obj.name == name:
+                return obj
+        return None
+
+    def get_product_by_price(self, min_price, max_price):
+        return '\n'.join(str(obj) for obj in self.catalog if min_price <= obj.price <= max_price)
 
 banana1 = Product('banana', 59)
 banana2 = Product('banana', 89)
@@ -138,3 +158,14 @@ for product in cart1:
 print(cart1.total_without_discount())
 
 print('banana' in cart1)
+
+store1 = Store()
+store1.add_product(apple1)
+store1.add_product(apple2)
+store1.add_product(apple3)
+store1.add_product(banana1)
+store1.add_product(banana2)
+print('--------------------------------')
+print(store1.get_product_by_price(90, 100))
+print('--------------------------------')
+print(store1.show_catalog())
