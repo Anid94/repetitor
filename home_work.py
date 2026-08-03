@@ -65,11 +65,18 @@ class Cart:
         self.my_list.clear()
         print('Корзина очищена')
 
-    def find_obj(self, product_name):
+    def __contains__(self, item):
+        for obj in self.my_list:
+            if obj.name == item:
+                return obj
+        return False
+
+    '''def find_obj(self, product_name):
         for obj in self.my_list:
             if obj.name == product_name:
                 return obj
         return None
+    '''
 
     def __len__(self):
         return len(self.my_list)
@@ -103,6 +110,7 @@ class WeightProduct(Product):
         return f'name: {self.name}, price per kg: {self.price_per_kg} руб./кг'
 
 
+
 banana1 = Product('banana', 59)
 banana2 = Product('banana', 89)
 apple1 = Product('apple', 90)
@@ -128,3 +136,5 @@ for product in cart1:
     print(product)
 
 print(cart1.total_without_discount())
+
+print('banana' in cart1)
