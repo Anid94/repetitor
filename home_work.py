@@ -1,10 +1,37 @@
-from decorators import logging
+from decorators import logging, timer, validate_positive, log_calls
 
 class Product:
+    @validate_positive
+    @log_calls
     def __init__(self, name, price):
         self.name = name
         self.price = price
 
+    @property
+    def is_expensive(self):
+        return self.price > 100
+
+    @property
+    def price(self):
+        return self._price
+
+    @price.setter
+    def price(self, value):
+        if value <= 0:
+            raise ValueError('Цена не может быть отрицательной или равной нулю')
+        self._price = value
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not value.strip():
+            raise ValueError('Пустое имя запрещено')
+        self._name = value
+
+    @log_calls
     def __str__(self):
         return f'name: {self.name}, price: {self.price}'
 
@@ -24,7 +51,9 @@ class Cart:
         cart.my_list = self.my_list + other.my_list
         return cart
 
+
     def add_product(self, product):
+        '''Добавляет продукт в корзину, если он не пустой.'''
         if product:
             self.my_list.append(product)
 
@@ -32,18 +61,13 @@ class Cart:
         return len(self.my_list)
 
     def total_without_discount(self):
-        summ = 0
-        for obj in self.my_list:
-            summ += obj.price
-
-        return summ
+        return sum(obj.price for obj in self.my_list)
 
     def __str__(self):
         if not self.my_list:
             return 'Корзина пуста'
         all_products = ', '.join(str(obj.name) for obj in self.my_list)
         return f'{all_products} | Итого: {self.total_without_discount()} руб.'
-
 
     def remove_product(self, product):
         '''
@@ -61,7 +85,6 @@ class Cart:
             print(f'Товар {product} в корзине не найден')
         return self.my_list
 
-
     def clear(self):
         self.my_list.clear()
         print('Корзина очищена')
@@ -71,13 +94,6 @@ class Cart:
             if obj.name == item:
                 return True
         return False
-
-    '''def find_obj(self, product_name):
-        for obj in self.my_list:
-            if obj.name == product_name:
-                return obj
-        return None
-    '''
 
     def __len__(self):
         return len(self.my_list)
@@ -92,10 +108,17 @@ class DiscountProduct(Product):
     def __init__(self, name, price, discount):
         super().__init__(name, price)
         self.discount = discount
+    @classmethod
+    def from_product(cls, product, discount):
+        return cls(product.name, product.price, discount)
 
     @logging
     def price_with_discount(self):
-        return self.price * (1 - self.discount / 100)
+        return round(self.price * (1 - self.discount / 100), 2)
+
+    @property
+    def saved_amount(self):
+        return f'{self.price - self.price_with_discount():.2f}'
 
     def display(self):
         return f'name: {self.name}, price: {self.price_with_discount()} руб. (original: {self.price} руб., discount: {self.discount}%)'
@@ -115,6 +138,7 @@ class Store():
     def __init__(self):
         self.catalog = []
 
+    @log_calls
     def add_product(self, product):
         self.catalog.append(product)
         return f' Товар "{product.name}" добавлен в корзину'
@@ -129,55 +153,37 @@ class Store():
             else:
                 print(item)
 
-
     def find_product(self, name):
         for obj in self.catalog:
             if obj.name == name:
                 return obj
         return None
 
+    @validate_positive
     def get_product_by_price(self, min_price, max_price):
         for obj in self.catalog:
             if min_price <= obj.price <= max_price:
                 print(obj)
 
-banana1 = Product('banana', 59)
-banana2 = Product('banana', 89)
-apple1 = Product('apple', 90)
-apple2 = Product('apple', 95)
-apple3 = Product('apple', 100)
+milk = Product('milk', 89)
+milk_discount = DiscountProduct.from_product(milk, 15)
+bread1 = Product('bread', 67)
+bread2 = Product('bread', 57)
+cookie = Product('cookie', 200)
 
-obj = DiscountProduct(banana1.name, banana1.price, 15)
+kiwi = WeightProduct('kiwi', 150)
+beef = WeightProduct('beef', 600)
 
+#print(milk_discount.saved_amount)
 cart1 = Cart()
-cart1.add_product(apple1)
-cart1.add_product(apple2)
-cart1.add_product(apple3)
-cart1.add_product(banana1)
-cart1.add_product(banana2)
-
-print(cart1)
-print(cart1.total_without_discount())
-print('---------------------')
-cart1.remove_product('apple')
-print('---------------------')
-print(cart1)
-print('---------------------')
-
-for product in cart1:
-    print(product)
-
-print(cart1.total_without_discount())
-
-print('banana' in cart1)
+cart1.add_product(milk_discount)
 
 store1 = Store()
-store1.add_product(apple1)
-store1.add_product(apple2)
-store1.add_product(apple3)
-store1.add_product(banana2)
-store1.add_product(obj)
-print('--------------------------------')
-store1.get_product_by_price(90, 100)
-print('--------------------------------')
-store1.show_catalog()
+store1.add_product(bread1)
+store1.add_product(cookie)
+
+store1.get_product_by_price(100, 500)
+
+#print(Cart().add_product.__name__)
+#print(Cart().add_product.__doc__)
+#print(Cart().add_product.__wrapped__)
