@@ -41,7 +41,7 @@ def log_calls(function):
         with open('calls.log', 'a', encoding='utf-8') as file:
             file.writelines(f'Сработала функция "{function.__qualname__}",\n'
                             f'Переданы агрументы "{all_values[1::]}",\n'
-                            f'дата и время - {now.strftime("%d.%m.%Y %H:%M")}\n\n')
+                            f'дата и время - {now.strftime("%d.%m.%y %H:%M")}\n\n')
         return result
     return wrapper
 

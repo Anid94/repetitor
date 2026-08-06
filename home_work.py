@@ -7,6 +7,18 @@ class Product:
         self.name = name
         self.price = price
 
+    @classmethod
+    def from_dict(cls, str):
+        try:
+            if str is None:
+                raise ValueError('В параметрах пустое значение')
+            np = str.split()
+            name = np[0]
+            price = int(np[1])
+            return cls(name, price)
+        except (KeyError, ValueError, TypeError) as e:
+            return ValueError(f'Ошибка "{e}" при создании словаря')
+
     @property
     def is_expensive(self):
         return self.price > 100
@@ -40,6 +52,21 @@ class Product:
             return False
         return self.name == other.name
 
+class CartIterator:
+    def __init__(self, items):
+        self.items = items
+        self.index = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.index >= len(self.items):
+            raise StopIteration
+        result = self.items[self.index]
+        self.index += 1
+        return result
+
 class Cart:
     def __init__(self):
         self.my_list = []
@@ -51,6 +78,12 @@ class Cart:
         cart.my_list = self.my_list + other.my_list
         return cart
 
+    def uniq_name(self):
+        st = set()
+        for product in self.my_list:
+            if product.name not in st:
+                st.add(product.name)
+                yield product.name
 
     def add_product(self, product):
         '''Добавляет продукт в корзину, если он не пустой.'''
@@ -102,7 +135,7 @@ class Cart:
         return self.my_list[index]
 
     def __iter__(self):
-        return iter(self.my_list)
+        return CartIterator(self.my_list)
 
 class DiscountProduct(Product):
     def __init__(self, name, price, discount):
@@ -127,6 +160,10 @@ class WeightProduct(Product):
     def __init__(self, name, price_per_kg):
         super().__init__(name, price_per_kg)
         self.price_per_kg = price_per_kg
+
+    @staticmethod
+    def calculate_cost(weight, price_per_kg):
+        return round(weight * price_per_kg, 2)
 
     def get_cost(self, weight):
         return self.price_per_kg * weight
@@ -165,6 +202,10 @@ class Store():
             if min_price <= obj.price <= max_price:
                 print(obj)
 
+    def pagination(self, count=3):
+        for n in range(0, len(self.catalog), count):
+            yield self.catalog[n:n+count]
+
 milk = Product('milk', 89)
 milk_discount = DiscountProduct.from_product(milk, 15)
 bread1 = Product('bread', 67)
@@ -177,9 +218,17 @@ beef = WeightProduct('beef', 600)
 #print(milk_discount.saved_amount)
 cart1 = Cart()
 cart1.add_product(milk_discount)
+cart1.add_product(milk_discount)
+cart1.add_product(milk_discount)
+cart1.add_product(kiwi)
+cart1.add_product(beef)
+cart1.add_product(beef)
 
 store1 = Store()
 store1.add_product(bread1)
+store1.add_product(cookie)
+store1.add_product(bread1)
+store1.add_product(cookie)
 store1.add_product(cookie)
 
 store1.get_product_by_price(100, 500)
@@ -187,3 +236,18 @@ store1.get_product_by_price(100, 500)
 #print(Cart().add_product.__name__)
 #print(Cart().add_product.__doc__)
 #print(Cart().add_product.__wrapped__)
+
+string = 'kiwi 100'
+#kiwi1 = Product.from_dict(string)
+
+#print(kiwi1)
+#print(WeightProduct.calculate_cost(2, 164))
+#for name in cart1.uniq_name():
+#    print(name)
+
+num = 1
+for page in store1.pagination():
+    print(f"\nстраница - {num}:")
+    for p in page:
+        print(f"  {p}")
+    num += 1
